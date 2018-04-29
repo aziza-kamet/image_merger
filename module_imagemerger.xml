@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_imagemerger" default="compile.module.imagemerger">
+  <dirname property="module.imagemerger.basedir" file="${ant.file.module_imagemerger}"/>
+  
+  <property name="module.jdk.home.imagemerger" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.imagemerger" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.imagemerger" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.imagemerger" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="imagemerger.output.dir" value="${module.imagemerger.basedir}/out/production/ImageMerger"/>
+  <property name="imagemerger.testoutput.dir" value="${module.imagemerger.basedir}/out/test/ImageMerger"/>
+  
+  <path id="imagemerger.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="imagemerger.module.production.classpath">
+    <path refid="${module.jdk.classpath.imagemerger}"/>
+  </path>
+  
+  <path id="imagemerger.runtime.production.module.classpath">
+    <pathelement location="${imagemerger.output.dir}"/>
+  </path>
+  
+  <path id="imagemerger.module.classpath">
+    <path refid="${module.jdk.classpath.imagemerger}"/>
+    <pathelement location="${imagemerger.output.dir}"/>
+  </path>
+  
+  <path id="imagemerger.runtime.module.classpath">
+    <pathelement location="${imagemerger.testoutput.dir}"/>
+    <pathelement location="${imagemerger.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.imagemerger">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.imagemerger">
+    <patternset refid="excluded.from.module.imagemerger"/>
+  </patternset>
+  
+  <path id="imagemerger.module.sourcepath">
+    <dirset dir="${module.imagemerger.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.imagemerger" depends="compile.module.imagemerger.production,compile.module.imagemerger.tests" description="Compile module ImageMerger"/>
+  
+  <target name="compile.module.imagemerger.production" depends="register.custom.compilers" description="Compile module ImageMerger; production classes">
+    <mkdir dir="${imagemerger.output.dir}"/>
+    <javac2 destdir="${imagemerger.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.imagemerger}/javac">
+      <compilerarg line="${compiler.args.imagemerger}"/>
+      <bootclasspath refid="imagemerger.module.bootclasspath"/>
+      <classpath refid="imagemerger.module.production.classpath"/>
+      <src refid="imagemerger.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.imagemerger"/>
+    </javac2>
+    
+    <copy todir="${imagemerger.output.dir}">
+      <fileset dir="${module.imagemerger.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.imagemerger.tests" depends="register.custom.compilers,compile.module.imagemerger.production" description="compile module ImageMerger; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.imagemerger" description="cleanup module">
+    <delete dir="${imagemerger.output.dir}"/>
+    <delete dir="${imagemerger.testoutput.dir}"/>
+  </target>
+</project>

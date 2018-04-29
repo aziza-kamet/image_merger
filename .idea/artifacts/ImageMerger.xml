@@ -1,0 +1,24 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="ImageMerger">
+    <output-path>$PROJECT_DIR$/out/artifacts/ImageMerger</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="sample.Main" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="title" value="" />
+        <option name="vendor" value="" />
+        <option name="version" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="ImageMerger.jar">
+        <element id="directory" name="libraries">
+          <element id="file-copy" path="$USER_HOME$/Downloads/jexcelapi/jxl.jar" />
+          <element id="file-copy" path="$USER_HOME$/Downloads/commons-io-2.6/commons-io-2.6.jar" />
+        </element>
+        <element id="module-output" name="ImageMerger" />
+      </element>
+    </root>
+  </artifact>
+</component>
