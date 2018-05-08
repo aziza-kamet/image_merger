@@ -1,5 +1,8 @@
 package sample;
 
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.paint.*;
@@ -24,6 +27,8 @@ public class Controller {
 
     @FXML
     private javafx.scene.control.Label statusLabel;
+    @FXML
+    private ProgressBar progressBar;
 
     private File chosenDir;
     private final double MAX_HEIGHT = Glue.HEIGHT - Glue.MARGIN_TOP;
@@ -32,8 +37,8 @@ public class Controller {
 
         DirectoryChooser dirChooser = new DirectoryChooser();
         this.chosenDir = dirChooser.showDialog(Main.stage);
-        statusLabel.setText("Нажмите на кнопку \"Старт\"");
-        statusLabel.setTextFill(Color.web("#555555"));
+        statusLabel.setText("Нажмите кнопку \"Старт\"");
+        statusLabel.setTextFill(Color.web("#222222"));
     }
 
     public void onStartButtonClicked() {
@@ -42,20 +47,23 @@ public class Controller {
         Reader reader = new Reader();
         if (chosenDir == null ) {
             statusLabel.setText("Сначала выберите папку");
-            statusLabel.setTextFill(Color.web("#cc5555"));
+            statusLabel.setTextFill(Color.web("#cc2222"));
             return;
         } else if (!chosenDir.isDirectory()) {
             statusLabel.setText("Выбранный вами объект не является папкой");
-            statusLabel.setTextFill(Color.web("#cc5555"));
+            statusLabel.setTextFill(Color.web("#cc2222"));
             return;
         }
 
         statusLabel.setText("");
-        statusLabel.setTextFill(Color.web("#555555"));
+        statusLabel.setTextFill(Color.web("#222222"));
+
+        String msg = null;
 
         ArrayList<File> images = reader.init(chosenDir);
         HashMap<String, LinkedList<File>> imagesMap = new HashMap();
         String subjectIndex = null;
+        int max = 0;
 
         for (File image : images) {
             String fileName = image.getName();
@@ -75,7 +83,19 @@ public class Controller {
                 }
                 imageQueue.add(image);
                 imagesMap.put(index, imageQueue);
+
+                if (imageQueue.size() > max) {
+                    max = imageQueue.size();
+                }
+            } else {
+                msg = "Ошибка: " + image.getName();
             }
+        }
+
+        if (msg != null) {
+            statusLabel.setText(msg);
+            statusLabel.setTextFill(Color.web("#cc2222"));
+            return;
         }
 
         Glue.setFolderName(subjectIndex);
@@ -87,86 +107,26 @@ public class Controller {
             keySize++;
         }
 
-        int keyCount;
-        int round = 1;
-        HashMap<Integer, ArrayList<String>> excelMap = new HashMap<>();
+        Task task = setTask(keys, imagesMap, max, subjectIndex, keySize);
 
-        do {
-            keyCount = 0;
-
-            ArrayList<BufferedImage> imageArrayList = new ArrayList<>();
-            ArrayList<String> imageNames = new ArrayList<String>();
-            double height = 0;
-            int counter = 1;
-
-            for (String key : keys) {
-                try {
-                    File imageFile = imagesMap.get(key).pop();
-                    imageNames.add(FilenameUtils.removeExtension(imageFile.getName()));
-
-                    BufferedImage image = ImageIO.read(imageFile);
-                    height += image.getHeight();
-                    if (height > MAX_HEIGHT) {
-
-                        glueImages(imageArrayList, subjectIndex, round, counter);
-
-                        imageArrayList = new ArrayList<>();
-                        imageArrayList.add(image);
-                        height = image.getHeight();
-                        counter++;
-                    } else {
-                        imageArrayList.add(image);
-                    }
-
-                    if (imagesMap.get(key).size() > 0) {
-                        keyCount++;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+                statusLabel.setText((String) task.getValue());
+                statusLabel.setTextFill(Color.web("#22cc22"));
             }
+        });
 
-            if (imageArrayList.size() > 0) {
-                glueImages(imageArrayList, subjectIndex, round, counter);
+        task.setOnFailed(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+                statusLabel.setText((String) task.getValue());
+                statusLabel.setTextFill(Color.web("#cc2222"));
             }
+        });
 
-            excelMap.put(round, imageNames);
-            round++;
-
-
-        } while (keyCount == keySize);
-
-        SortedSet<Integer> excelKeys = new TreeSet<>(excelMap.keySet());
-        try {
-
-            WritableWorkbook workbook = Workbook.createWorkbook(new File(chosenDir.getAbsolutePath()
-                    + "/" + Glue.folderName()
-                    + "//Список.xls"));
-            WritableSheet sheet = workbook.createSheet("Варианты", 0);
-
-            int i = 0;
-            for (Integer key : excelKeys) {
-
-                sheet.addCell(new Label(0, i, "Вариант " + key));
-                i++;
-
-                for (String name : excelMap.get(key)) {
-                    sheet.addCell(new Label(0, i, name));
-                    i++;
-                }
-
-                i++;
-            }
-
-            workbook.write();
-            workbook.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        statusLabel.setText("Процесс завершился успешно!");
-        statusLabel.setTextFill(Color.web("#55cc55"));
+        progressBar.progressProperty().bind(task.progressProperty());
+        new Thread(task).start();
     }
 
     private String generateImageName(String subjectIndex, int round, int counter) {
@@ -175,14 +135,104 @@ public class Controller {
 
     private void glueImages(ArrayList<BufferedImage> imageArrayList, String subjectIndex, int round, int counter) {
         String result = Glue.merge(imageArrayList, generateImageName(subjectIndex, round, counter), chosenDir.getAbsolutePath());
+    }
 
-        if (result.equals("error")) {
-            statusLabel.setText("Ошибка при соединении изоброжении");
-            statusLabel.setTextFill(Color.web("#cc5555"));
-        } else {
-            statusLabel.setText("Вариант " + round + " Страница " + counter + " готов");
-        }
+    public Task setTask(SortedSet<String> keys, HashMap<String, LinkedList<File>> imagesMap,
+                        int max, String subjectIndex, int keySize) {
+        return new Task<String>() {
 
+            @Override protected String call() throws Exception {
+
+                String msg = "Готово";
+
+                int keyCount;
+                int round = 1;
+                HashMap<Integer, ArrayList<String>> excelMap = new HashMap<>();
+                double minUnit = 1.0 / max;
+                double initUnit = minUnit;
+
+                do {
+                    keyCount = 0;
+
+                    ArrayList<BufferedImage> imageArrayList = new ArrayList<>();
+                    ArrayList<String> imageNames = new ArrayList<String>();
+                    double height = 0;
+                    int counter = 1;
+
+                    for (String key : keys) {
+                        try {
+                            File imageFile = imagesMap.get(key).pop();
+                            imageNames.add(FilenameUtils.removeExtension(imageFile.getName()));
+
+                            BufferedImage image = ImageIO.read(imageFile);
+                            height += image.getHeight();
+                            if (height > MAX_HEIGHT) {
+
+                                glueImages(imageArrayList, subjectIndex, round, counter);
+
+                                imageArrayList = new ArrayList<>();
+                                imageArrayList.add(image);
+                                height = image.getHeight();
+                                counter++;
+                            } else {
+                                imageArrayList.add(image);
+                            }
+
+                            if (imagesMap.get(key).size() > 0) {
+                                keyCount++;
+                            }
+                        } catch (IOException e) {
+                            msg = "Ошибка при соединении рисунков";
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (imageArrayList.size() > 0) {
+                        glueImages(imageArrayList, subjectIndex, round, counter);
+                    }
+
+                    excelMap.put(round, imageNames);
+                    round++;
+
+                    updateProgress(initUnit, 1.0);
+                    initUnit += minUnit;
+
+                } while (keyCount == keySize);
+
+                SortedSet<Integer> excelKeys = new TreeSet<>(excelMap.keySet());
+                try {
+
+                    WritableWorkbook workbook = Workbook.createWorkbook(new File(chosenDir.getAbsolutePath()
+                            + "/" + Glue.folderName()
+                            + "//Список.xls"));
+                    WritableSheet sheet = workbook.createSheet("Варианты", 0);
+
+                    int i = 0;
+                    for (Integer key : excelKeys) {
+
+                        sheet.addCell(new Label(0, i, "Вариант " + key));
+                        i++;
+
+                        for (String name : excelMap.get(key)) {
+                            sheet.addCell(new Label(0, i, name));
+                            i++;
+                        }
+
+                        i++;
+                    }
+
+                    workbook.write();
+                    workbook.close();
+
+                } catch (Exception e) {
+                    msg = "Ошибка при записи в Excel";
+                    e.printStackTrace();
+                }
+
+                return msg;
+            }
+
+        };
     }
 
 }
