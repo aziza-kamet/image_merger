@@ -5,7 +5,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by aziza on 28.04.18.
@@ -15,6 +17,7 @@ public class Glue {
     public static final int HEIGHT = 2480;
     public static final int WIDTH = 1752;
     public static final int MARGIN_TOP = 74;
+    private static String folderName = "Набор";
 
     public static String merge(ArrayList<BufferedImage> images, String name, String path) {
 
@@ -31,7 +34,7 @@ public class Glue {
         g2d.dispose();
 
         try {
-            File dir = new File(path + "/Набор");
+            File dir = new File(path + "/" + folderName);
             if (!dir.exists()){
                 dir.mkdir();
             }
@@ -41,5 +44,15 @@ public class Glue {
             e.printStackTrace();
         }
         return "error";
+    }
+
+    public static String folderName()
+    {
+        return folderName;
+    }
+
+    public static void setFolderName(String subjectIndex) {
+        SimpleDateFormat format = new SimpleDateFormat("dd.MM_HH.mm.ss");
+        folderName = subjectIndex + "_" + format.format(new Date());
     }
 }

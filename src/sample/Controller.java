@@ -6,6 +6,7 @@ import javafx.scene.paint.*;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import jxl.Workbook;
+import jxl.write.DateFormat;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
@@ -16,6 +17,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Controller {
@@ -52,14 +54,18 @@ public class Controller {
         statusLabel.setTextFill(Color.web("#555555"));
 
         ArrayList<File> images = reader.init(chosenDir);
-
         HashMap<String, LinkedList<File>> imagesMap = new HashMap();
+        String subjectIndex = null;
+
         for (File image : images) {
             String fileName = image.getName();
             String imageNameArray[] = fileName.split("_");
             String index = null;
             if (imageNameArray.length == 4 ) {
                 index = imageNameArray[2];
+                if (subjectIndex == null) {
+                    subjectIndex = imageNameArray[1];
+                }
             }
 
             if (index != null) {
@@ -71,6 +77,8 @@ public class Controller {
                 imagesMap.put(index, imageQueue);
             }
         }
+
+        Glue.setFolderName(subjectIndex);
 
         SortedSet<String> keys = new TreeSet<>(imagesMap.keySet());
         int keySize = 0;
@@ -131,7 +139,9 @@ public class Controller {
         SortedSet<Integer> excelKeys = new TreeSet<>(excelMap.keySet());
         try {
 
-            WritableWorkbook workbook = Workbook.createWorkbook(new File(chosenDir.getAbsolutePath() + "/Набор/Список.xls"));
+            WritableWorkbook workbook = Workbook.createWorkbook(new File(chosenDir.getAbsolutePath()
+                    + "/" + Glue.folderName()
+                    + "//Список.xls"));
             WritableSheet sheet = workbook.createSheet("Варианты", 0);
 
             int i = 0;
