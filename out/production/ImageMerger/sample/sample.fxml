@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
@@ -16,17 +17,27 @@
    <bottom>
       <HBox prefHeight="58.0" prefWidth="500.0" BorderPane.alignment="CENTER">
          <children>
-            <Label id="statusLabel" fx:id="statusLabel" prefWidth="360.0" text="Нажмите на кнопку &quot;Выбрать папку&quot;">
+            <Label id="statusLabel" fx:id="statusLabel" lineSpacing="1.0" prefWidth="360.0" text="Нажмите кнопку &quot;Выбрать папку&quot;" textOverrun="CLIP">
                <HBox.margin>
                   <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                </HBox.margin>
+               <font>
+                  <Font name="Tahoma" size="16.0" />
+               </font>
             </Label>
             <Button id="startButton" mnemonicParsing="false" onAction="#onStartButtonClicked" prefHeight="28.0" prefWidth="67.0" text="Старт">
                <HBox.margin>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="15.0" />
                </HBox.margin>
             </Button>
          </children>
       </HBox>
    </bottom>
+   <top>
+      <ProgressBar fx:id="progressBar" prefWidth="200.0" progress="0.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets top="20.0" />
+         </padding>
+      </ProgressBar>
+   </top>
 </BorderPane>

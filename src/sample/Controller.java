@@ -5,14 +5,13 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.paint.*;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import jxl.Workbook;
-import jxl.write.DateFormat;
-import jxl.write.Label;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
+import jxl.write.*;
+import jxl.write.Number;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.imageio.ImageIO;
@@ -47,11 +46,11 @@ public class Controller {
         Reader reader = new Reader();
         if (chosenDir == null ) {
             statusLabel.setText("Сначала выберите папку");
-            statusLabel.setTextFill(Color.web("#cc2222"));
+            statusLabel.setTextFill(Color.web("#aa2222"));
             return;
         } else if (!chosenDir.isDirectory()) {
             statusLabel.setText("Выбранный вами объект не является папкой");
-            statusLabel.setTextFill(Color.web("#cc2222"));
+            statusLabel.setTextFill(Color.web("#aa2222"));
             return;
         }
 
@@ -94,7 +93,7 @@ public class Controller {
 
         if (msg != null) {
             statusLabel.setText(msg);
-            statusLabel.setTextFill(Color.web("#cc2222"));
+            statusLabel.setTextFill(Color.web("#aa2222"));
             return;
         }
 
@@ -113,7 +112,7 @@ public class Controller {
             @Override
             public void handle(WorkerStateEvent event) {
                 statusLabel.setText((String) task.getValue());
-                statusLabel.setTextFill(Color.web("#22cc22"));
+                statusLabel.setTextFill(Color.web("#22aa22"));
             }
         });
 
@@ -121,7 +120,7 @@ public class Controller {
             @Override
             public void handle(WorkerStateEvent event) {
                 statusLabel.setText((String) task.getValue());
-                statusLabel.setTextFill(Color.web("#cc2222"));
+                statusLabel.setTextFill(Color.web("#aa2222"));
             }
         });
 
@@ -210,11 +209,14 @@ public class Controller {
                     int i = 0;
                     for (Integer key : excelKeys) {
 
-                        sheet.addCell(new Label(0, i, "Вариант " + key));
+                        sheet.addCell(new jxl.write.Label(0, i, "Вариант " + key));
                         i++;
+                        int counter = 1;
 
                         for (String name : excelMap.get(key)) {
-                            sheet.addCell(new Label(0, i, name));
+                            sheet.addCell(new jxl.write.Label(0, i, name));
+                            sheet.addCell(new Number(2, i, counter));
+                            counter++;
                             i++;
                         }
 
