@@ -108,7 +108,7 @@ public class Controller {
                     height += image.getHeight();
                     if (height > MAX_HEIGHT) {
 
-                        glueImages(imageArrayList, round, counter);
+                        glueImages(imageArrayList, subjectIndex, round, counter);
 
                         imageArrayList = new ArrayList<>();
                         imageArrayList.add(image);
@@ -127,7 +127,7 @@ public class Controller {
             }
 
             if (imageArrayList.size() > 0) {
-                glueImages(imageArrayList, round, counter);
+                glueImages(imageArrayList, subjectIndex, round, counter);
             }
 
             excelMap.put(round, imageNames);
@@ -169,12 +169,12 @@ public class Controller {
         statusLabel.setTextFill(Color.web("#55cc55"));
     }
 
-    private String generateImageName(int round, int counter) {
-        return "Вариант" + round + "_" + counter;
+    private String generateImageName(String subjectIndex, int round, int counter) {
+        return subjectIndex + "_" + round + "_" + counter;
     }
 
-    private void glueImages(ArrayList<BufferedImage> imageArrayList, int round, int counter) {
-        String result = Glue.merge(imageArrayList, generateImageName(round, counter), chosenDir.getAbsolutePath());
+    private void glueImages(ArrayList<BufferedImage> imageArrayList, String subjectIndex, int round, int counter) {
+        String result = Glue.merge(imageArrayList, generateImageName(subjectIndex, round, counter), chosenDir.getAbsolutePath());
 
         if (result.equals("error")) {
             statusLabel.setText("Ошибка при соединении изоброжении");
