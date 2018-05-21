@@ -66,6 +66,13 @@ public class Controller {
 
         for (File image : images) {
             String fileName = image.getName();
+
+            System.out.println(fileName);
+            if (!fileName.matches("[0-9]{4}_[0-9]{2}_[0-9]{2}_[a-zA-Z]*.(jpg|jpeg)")) {
+                msg = "Ошибка: " + fileName;
+                break;
+            }
+
             String imageNameArray[] = fileName.split("_");
             String index = null;
             if (imageNameArray.length == 4 ) {

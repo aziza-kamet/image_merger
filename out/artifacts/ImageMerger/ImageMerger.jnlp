@@ -8,7 +8,7 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="ImageMerger.jar" size="8582" download="eager" />
+    <jar href="ImageMerger.jar" size="12917" download="eager" />
     <jar href="libraries/commons-io-2.6.jar" size="214788" download="eager" />
     <jar href="libraries/jxl.jar" size="725735" download="eager" />
   </resources>
